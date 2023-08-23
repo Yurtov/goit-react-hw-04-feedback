@@ -1,57 +1,65 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import { FeedbackOptions } from './FeedbackOptions/FeedbackOptions';
 import { Loyaut } from './Loyaut';
 import { Notification } from './Notification/Notification';
 import { Section } from './Section/Section';
 import { Statistics } from './Statistics/Statistics';
 
-export class App extends Component {
-  state = {
-    good: 0,
-    neutral: 0,
-    bad: 0,
+export const App = () => {
+  const [good, setGood] = useState(0);
+  const [neutral, setNeutral] = useState(0);
+  const [bad, setBad] = useState(0);
+
+  const heandleBtnClick = option => {
+    switch (option) {
+      case 'good':
+        setGood(prevState => prevState + 1);
+        break;
+
+      case 'neutral':
+        setNeutral(prevState => prevState + 1);
+        break;
+
+      case 'bad':
+        setBad(prevState => prevState + 1);
+        break;
+
+      default:
+        return;
+    }
   };
 
-  heandleBtnClick = type => {
-    this.setState(prevState => {
-      return { [type]: prevState[type] + 1 };
-    });
+  const countTotalFeedback = () => {
+    return good + neutral + bad;
   };
 
-  countTotalFeedback = () => {
-    return this.state.good + this.state.neutral + this.state.bad;
+  const countPositiveFeedbackPercentage = () => {
+    return Math.round((good / countTotalFeedback()) * 100);
   };
 
-  countPositiveFeedbackPercentage = () => {
-    return Math.round((this.state.good / this.countTotalFeedback()) * 100);
-  };
+  let massage;
+  countTotalFeedback() === 0
+    ? (massage = <Notification message="There is no feedback" />)
+    : (massage = (
+        <Statistics
+          good={good}
+          neutral={neutral}
+          bad={bad}
+          total={countTotalFeedback()}
+          positivePercentage={countPositiveFeedbackPercentage()}
+        />
+      ));
 
-  render() {
-    const { good, neutral, bad } = this.state;
-    let massage;
-    this.countTotalFeedback() === 0
-      ? (massage = <Notification message="There is no feedback" />)
-      : (massage = (
-          <Statistics
-            good={good}
-            neutral={neutral}
-            bad={bad}
-            total={this.countTotalFeedback()}
-            positivePercentage={this.countPositiveFeedbackPercentage()}
-          />
-        ));
+  return (
+    <Loyaut>
+      <Section title="Please leave feedback">
+        <FeedbackOptions
+          options={Object.keys({ good, neutral, bad })}
+          onClickType={heandleBtnClick}
+        ></FeedbackOptions>
+      </Section>
 
-    return (
-      <Loyaut>
-        <Section title="Please leave feedback">
-          <FeedbackOptions
-            options={Object.keys(this.state)}
-            onClickType={this.heandleBtnClick}
-          ></FeedbackOptions>
-        </Section>
-
-        <Section title="Statistics">{massage}</Section>
-      </Loyaut>
-    );
-  }
-}
+      <Section title="Statistics">{massage}</Section>
+    </Loyaut>
+  );
+};
